@@ -1,0 +1,139 @@
+{
+  "brands": [
+    {
+      "slug": "apple",
+      "name": "Apple",
+      "depreciationProfile": { "baseRetention": 0.83, "monthlyDepreciation": 0.018, "floorRetention": 0.34, "brandPremium": 0.1 },
+      "models": [
+        { "slug": "iphone-15", "name": "iPhone 15", "launchPrice": 79900, "releaseYear": 2023, "segment": "flagship", "modelRetentionBoost": 0.05 },
+        { "slug": "iphone-14", "name": "iPhone 14", "launchPrice": 69900, "releaseYear": 2022, "segment": "flagship", "modelRetentionBoost": 0.04 },
+        { "slug": "iphone-13", "name": "iPhone 13", "launchPrice": 59900, "releaseYear": 2021, "segment": "flagship", "modelRetentionBoost": 0.03 }
+      ]
+    },
+    {
+      "slug": "samsung",
+      "name": "Samsung",
+      "depreciationProfile": { "baseRetention": 0.76, "monthlyDepreciation": 0.022, "floorRetention": 0.28, "brandPremium": 0.05 },
+      "models": [
+        { "slug": "galaxy-s24", "name": "Galaxy S24", "launchPrice": 74999, "releaseYear": 2024, "segment": "flagship", "modelRetentionBoost": 0.04 },
+        { "slug": "galaxy-s23", "name": "Galaxy S23", "launchPrice": 74999, "releaseYear": 2023, "segment": "flagship", "modelRetentionBoost": 0.035 },
+        { "slug": "galaxy-a54", "name": "Galaxy A54", "launchPrice": 38999, "releaseYear": 2023, "segment": "midrange", "modelRetentionBoost": 0.015 }
+      ]
+    },
+    {
+      "slug": "oneplus",
+      "name": "OnePlus",
+      "depreciationProfile": { "baseRetention": 0.73, "monthlyDepreciation": 0.023, "floorRetention": 0.25, "brandPremium": 0.04 },
+      "models": [
+        { "slug": "oneplus-12", "name": "OnePlus 12", "launchPrice": 64999, "releaseYear": 2024, "segment": "flagship", "modelRetentionBoost": 0.03 },
+        { "slug": "oneplus-11", "name": "OnePlus 11", "launchPrice": 56999, "releaseYear": 2023, "segment": "flagship", "modelRetentionBoost": 0.025 },
+        { "slug": "nord-3", "name": "Nord 3", "launchPrice": 33999, "releaseYear": 2023, "segment": "midrange", "modelRetentionBoost": 0.01 }
+      ]
+    },
+    {
+      "slug": "xiaomi",
+      "name": "Xiaomi",
+      "depreciationProfile": { "baseRetention": 0.68, "monthlyDepreciation": 0.026, "floorRetention": 0.22, "brandPremium": 0.01 },
+      "models": [
+        { "slug": "xiaomi-14", "name": "Xiaomi 14", "launchPrice": 69999, "releaseYear": 2024, "segment": "flagship", "modelRetentionBoost": 0.02 },
+        { "slug": "redmi-note-13-pro", "name": "Redmi Note 13 Pro", "launchPrice": 28999, "releaseYear": 2024, "segment": "midrange", "modelRetentionBoost": 0.008 }
+      ]
+    },
+    {
+      "slug": "realme",
+      "name": "Realme",
+      "depreciationProfile": { "baseRetention": 0.67, "monthlyDepreciation": 0.026, "floorRetention": 0.22, "brandPremium": 0.01 },
+      "models": []
+    },
+    {
+      "slug": "oppo",
+      "name": "Oppo",
+      "depreciationProfile": { "baseRetention": 0.68, "monthlyDepreciation": 0.025, "floorRetention": 0.23, "brandPremium": 0.02 },
+      "models": []
+    },
+    {
+      "slug": "vivo",
+      "name": "Vivo",
+      "depreciationProfile": { "baseRetention": 0.67, "monthlyDepreciation": 0.025, "floorRetention": 0.23, "brandPremium": 0.02 },
+      "models": []
+    },
+    {
+      "slug": "google",
+      "name": "Google",
+      "depreciationProfile": { "baseRetention": 0.75, "monthlyDepreciation": 0.021, "floorRetention": 0.27, "brandPremium": 0.05 },
+      "models": [
+        { "slug": "pixel-8", "name": "Pixel 8", "launchPrice": 75999, "releaseYear": 2023, "segment": "flagship", "modelRetentionBoost": 0.03 },
+        { "slug": "pixel-8a", "name": "Pixel 8a", "launchPrice": 52999, "releaseYear": 2024, "segment": "midrange", "modelRetentionBoost": 0.02 }
+      ]
+    },
+    {
+      "slug": "nothing",
+      "name": "Nothing",
+      "depreciationProfile": { "baseRetention": 0.71, "monthlyDepreciation": 0.024, "floorRetention": 0.24, "brandPremium": 0.03 },
+      "models": [
+        { "slug": "phone-2", "name": "Phone (2)", "launchPrice": 44999, "releaseYear": 2023, "segment": "midrange", "modelRetentionBoost": 0.02 },
+        { "slug": "phone-2a", "name": "Phone (2a)", "launchPrice": 23999, "releaseYear": 2024, "segment": "midrange", "modelRetentionBoost": 0.015 }
+      ]
+    },
+    {
+      "slug": "motorola",
+      "name": "Motorola",
+      "depreciationProfile": { "baseRetention": 0.69, "monthlyDepreciation": 0.024, "floorRetention": 0.23, "brandPremium": 0.02 },
+      "models": []
+    },
+    {
+      "slug": "nokia",
+      "name": "Nokia",
+      "depreciationProfile": { "baseRetention": 0.66, "monthlyDepreciation": 0.024, "floorRetention": 0.22, "brandPremium": 0.01 },
+      "models": []
+    },
+    {
+      "slug": "asus",
+      "name": "Asus",
+      "depreciationProfile": { "baseRetention": 0.7, "monthlyDepreciation": 0.023, "floorRetention": 0.24, "brandPremium": 0.03 },
+      "models": []
+    },
+    {
+      "slug": "sony",
+      "name": "Sony",
+      "depreciationProfile": { "baseRetention": 0.71, "monthlyDepreciation": 0.023, "floorRetention": 0.25, "brandPremium": 0.03 },
+      "models": []
+    },
+    {
+      "slug": "huawei",
+      "name": "Huawei",
+      "depreciationProfile": { "baseRetention": 0.68, "monthlyDepreciation": 0.024, "floorRetention": 0.23, "brandPremium": 0.02 },
+      "models": []
+    },
+    {
+      "slug": "honor",
+      "name": "Honor",
+      "depreciationProfile": { "baseRetention": 0.67, "monthlyDepreciation": 0.024, "floorRetention": 0.23, "brandPremium": 0.02 },
+      "models": []
+    },
+    {
+      "slug": "lenovo",
+      "name": "Lenovo",
+      "depreciationProfile": { "baseRetention": 0.66, "monthlyDepreciation": 0.024, "floorRetention": 0.22, "brandPremium": 0.01 },
+      "models": []
+    },
+    {
+      "slug": "infinix",
+      "name": "Infinix",
+      "depreciationProfile": { "baseRetention": 0.64, "monthlyDepreciation": 0.027, "floorRetention": 0.2, "brandPremium": 0.005 },
+      "models": []
+    },
+    {
+      "slug": "tecno",
+      "name": "Tecno",
+      "depreciationProfile": { "baseRetention": 0.64, "monthlyDepreciation": 0.027, "floorRetention": 0.2, "brandPremium": 0.005 },
+      "models": []
+    },
+    {
+      "slug": "micromax",
+      "name": "Micromax",
+      "depreciationProfile": { "baseRetention": 0.62, "monthlyDepreciation": 0.028, "floorRetention": 0.19, "brandPremium": 0 },
+      "models": []
+    }
+  ]
+}
