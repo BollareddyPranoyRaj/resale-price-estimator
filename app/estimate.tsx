@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   FlatList,
@@ -16,11 +16,20 @@ import {
 
 import {
   getCategoryDefinition,
+  getPopularModelQuickPicks,
+  getPopularModelSuggestions,
   phaseOneCatalog,
   type CategorySlug,
 } from '@/lib/catalog';
 import {
-  estimateResalePrice,
+  getPhoneBrands,
+  getPhoneModels,
+  postEstimate,
+  type EstimateRequest,
+  type PhoneBrand,
+  type PhoneModel,
+} from '@/lib/api';
+import {
   getValidationMessage,
   type BatteryCondition,
   type RepairHistory,
@@ -36,68 +45,109 @@ const batteryOptions: BatteryCondition[] = ['good', 'average', 'poor'];
 const usageOptions: UsageIntensity[] = ['light', 'moderate', 'heavy'];
 const yesNoOptions = ['yes', 'no'] as const;
 const repairOptions: RepairHistory[] = ['no', 'minor', 'major'];
+type BrandOption = { slug?: string; name: string };
 
 export default function EstimateScreen() {
   const [category, setCategory] = useState<CategorySlug>('phones');
   const [query, setQuery] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [modelQuery, setModelQuery] = useState('');
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<BrandOption | null>(null);
+  const [phoneBrands, setPhoneBrands] = useState<PhoneBrand[]>([]);
+  const [phoneModels, setPhoneModels] = useState<PhoneModel[]>([]);
+  const [selectedPhoneModel, setSelectedPhoneModel] = useState<PhoneModel | null>(null);
+  const [modelName, setModelName] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
+  const [apiError, setApiError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [brandLoadError, setBrandLoadError] = useState('');
+  const [modelLoadError, setModelLoadError] = useState('');
+  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [conditionData, setConditionData] = useState({
-    physical: 'good' as PhysicalCondition,
-    screen: 'no scratches' as ScreenCondition,
-    battery: 'good' as BatteryCondition,
+    physical: null as PhysicalCondition | null,
+    screen: null as ScreenCondition | null,
+    battery: null as BatteryCondition | null,
     age: '',
-    usage: 'moderate' as UsageIntensity,
-    accessories: 'no' as 'yes' | 'no',
-    repairs: 'no' as RepairHistory,
-    warranty: 'no' as 'yes' | 'no',
+    usage: null as UsageIntensity | null,
+    accessories: null as 'yes' | 'no' | null,
+    repairs: null as RepairHistory | null,
+    warranty: null as 'yes' | 'no' | null,
   });
   const [touched, setTouched] = useState(false);
 
   const categoryDefinition = useMemo(() => getCategoryDefinition(category), [category]);
-  const matchedBrand = useMemo(
+  const isPhoneCategory = category === 'phones';
+  const availableBrands = useMemo<BrandOption[]>(
     () =>
-      categoryDefinition?.brands.find(
-        (entry) => entry.name.toLowerCase() === (selectedBrand ?? '').trim().toLowerCase()
-      ) ?? null,
-    [categoryDefinition, selectedBrand]
-  );
-  const matchedModel = useMemo(
-    () =>
-      matchedBrand?.models.find(
-        (entry) => entry.name.toLowerCase() === (selectedModel ?? '').trim().toLowerCase()
-      ) ?? null,
-    [matchedBrand, selectedModel]
+      isPhoneCategory
+        ? phoneBrands.map((brand) => ({ slug: brand.slug, name: brand.name }))
+        : (categoryDefinition?.brands ?? []).map((brand) => ({ slug: brand.slug, name: brand.name })),
+    [categoryDefinition, isPhoneCategory, phoneBrands]
   );
 
+  const matchedBrand = useMemo(() => {
+    if (!selectedBrand) {
+      return null;
+    }
+
+    return (
+      availableBrands.find((entry) => {
+        if (selectedBrand.slug && entry.slug) {
+          return entry.slug === selectedBrand.slug;
+        }
+
+        return entry.name.toLowerCase() === selectedBrand.name.toLowerCase();
+      }) ?? selectedBrand
+    );
+  }, [availableBrands, selectedBrand]);
+
   const filteredBrands = useMemo(() => {
-    const brands = categoryDefinition?.brands ?? [];
     const normalizedQuery = query.trim().toLowerCase();
 
     if (!normalizedQuery) {
       return [];
     }
 
-    return brands.filter((brand) => brand.name.toLowerCase().includes(normalizedQuery));
-  }, [categoryDefinition, query]);
+    return availableBrands.filter((brand) => brand.name.toLowerCase().includes(normalizedQuery));
+  }, [availableBrands, query]);
 
-  const filteredModels = useMemo(() => {
-    const models = matchedBrand?.models ?? [];
-    const normalizedQuery = modelQuery.trim().toLowerCase();
-
-    if (!normalizedQuery) {
+  const modelSuggestions = useMemo(() => {
+    if (!matchedBrand) {
       return [];
     }
 
-    return models.filter((model) => model.name.toLowerCase().includes(normalizedQuery));
-  }, [matchedBrand, modelQuery]);
+    if (isPhoneCategory) {
+      const normalizedModelQuery = modelName.trim().toLowerCase();
 
-  const estimateInput = {
+      if (!normalizedModelQuery) {
+        return [];
+      }
+
+      return phoneModels
+        .filter((model) => model.name.toLowerCase().includes(normalizedModelQuery))
+        .map((model) => model.name);
+    }
+
+    return getPopularModelSuggestions(matchedBrand.slug, modelName);
+  }, [isPhoneCategory, matchedBrand, modelName, phoneModels]);
+
+  const modelQuickPicks = useMemo(() => {
+    if (!matchedBrand) {
+      return [];
+    }
+
+    if (isPhoneCategory) {
+      return phoneModels.slice(0, 3).map((model) => model.name);
+    }
+
+    return getPopularModelQuickPicks(matchedBrand.slug);
+  }, [isPhoneCategory, matchedBrand, phoneModels]);
+
+  const estimateInput: EstimateRequest = {
     category,
-    brandName: selectedBrand ?? query.trim(),
-    modelName: selectedModel ?? modelQuery.trim(),
+    brandName: selectedBrand?.name ?? query.trim(),
+    brandSlug: isPhoneCategory ? selectedBrand?.slug : undefined,
+    modelName: modelName.trim(),
+    modelSlug: isPhoneCategory ? selectedPhoneModel?.slug : undefined,
     originalPrice: Number(originalPrice),
     ageInMonths: Number(conditionData.age),
     condition: conditionData.physical,
@@ -114,54 +164,188 @@ export default function EstimateScreen() {
   };
 
   const validationMessage = touched ? getValidationMessage(estimateInput) : '';
+  const activeErrorMessage = validationMessage || apiError;
+
+  useEffect(() => {
+    if (!isPhoneCategory) {
+      setBrandLoadError('');
+      setModelLoadError('');
+      setPhoneModels([]);
+      setSelectedPhoneModel(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadPhoneBrands() {
+      setIsLoadingBrands(true);
+      setBrandLoadError('');
+
+      try {
+        const brands = await getPhoneBrands();
+        if (!cancelled) {
+          setPhoneBrands(brands);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setBrandLoadError(
+            error instanceof Error ? error.message : 'Failed to load supported phone brands.'
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingBrands(false);
+        }
+      }
+    }
+
+    void loadPhoneBrands();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isPhoneCategory]);
+
+  useEffect(() => {
+    const selectedBrandSlug = selectedBrand?.slug;
+
+    if (!isPhoneCategory || !selectedBrandSlug) {
+      setPhoneModels([]);
+      setSelectedPhoneModel(null);
+      setModelLoadError('');
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadPhoneModels() {
+      if (!selectedBrandSlug) {
+        return;
+      }
+
+      setIsLoadingModels(true);
+      setModelLoadError('');
+
+      try {
+        const models = await getPhoneModels(selectedBrandSlug);
+        if (!cancelled) {
+          setPhoneModels(models);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setModelLoadError(
+            error instanceof Error ? error.message : 'Failed to load phone models for this brand.'
+          );
+          setPhoneModels([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingModels(false);
+        }
+      }
+    }
+
+    void loadPhoneModels();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isPhoneCategory, selectedBrand?.slug]);
 
   const handleCategoryChange = (nextCategory: CategorySlug) => {
     setCategory(nextCategory);
     setQuery('');
     setSelectedBrand(null);
-    setModelQuery('');
-    setSelectedModel(null);
+    setPhoneModels([]);
+    setSelectedPhoneModel(null);
+    setModelName('');
     setOriginalPrice('');
+    setApiError('');
+    setBrandLoadError('');
+    setModelLoadError('');
   };
 
-  const handleBrandSelect = (brandName: string) => {
-    setSelectedBrand(brandName);
+  const handleBrandSelect = (brand: BrandOption) => {
+    setSelectedBrand(brand);
     setQuery('');
-    setModelQuery('');
-    setSelectedModel(null);
-    setOriginalPrice('');
+    setModelName('');
+    setSelectedPhoneModel(null);
+    setPhoneModels((current) =>
+      isPhoneCategory && brand.slug !== selectedBrand?.slug ? [] : current
+    );
+    setApiError('');
   };
 
-  const handleModelSelect = (modelName: string) => {
-    const nextModel =
-      matchedBrand?.models.find(
-        (entry) => entry.name.toLowerCase() === modelName.trim().toLowerCase()
-      ) ?? null;
+  const handleBrandClear = () => {
+    setSelectedBrand(null);
+    setQuery('');
+    setModelName('');
+    setSelectedPhoneModel(null);
+    setPhoneModels([]);
+    setApiError('');
+    setModelLoadError('');
+  };
 
-    setSelectedModel(modelName);
-    setModelQuery('');
+  const modelPlaceholder = matchedBrand ? `Type ${matchedBrand.name} model` : 'Type Model Name';
 
-    if (nextModel) {
-      setOriginalPrice(String(nextModel.launchPrice));
+  const handleModelChange = (value: string) => {
+    setModelName(value);
+    setApiError('');
+
+    if (!isPhoneCategory) {
+      return;
+    }
+
+    const nextSelectedModel =
+      phoneModels.find((model) => model.name.toLowerCase() === value.trim().toLowerCase()) ?? null;
+
+    setSelectedPhoneModel(nextSelectedModel);
+
+    if (nextSelectedModel && !originalPrice.trim()) {
+      setOriginalPrice(String(nextSelectedModel.launchPrice));
     }
   };
 
-  const handleEstimate = () => {
+  const handlePhoneModelSelect = (value: string) => {
+    const nextSelectedModel = phoneModels.find((model) => model.name === value) ?? null;
+    setSelectedPhoneModel(nextSelectedModel);
+    setModelName(value);
+    setApiError('');
+
+    if (nextSelectedModel && !originalPrice.trim()) {
+      setOriginalPrice(String(nextSelectedModel.launchPrice));
+    }
+  };
+
+  const handleEstimate = async () => {
     setTouched(true);
+    setApiError('');
+
+    if (isPhoneCategory && !selectedBrand?.slug) {
+      setApiError('Please choose a supported phone brand from the backend catalog.');
+      return;
+    }
 
     const nextValidationMessage = getValidationMessage(estimateInput);
     if (nextValidationMessage) {
       return;
     }
 
-    const result = estimateResalePrice(estimateInput);
+    try {
+      setIsSubmitting(true);
+      const result = await postEstimate(estimateInput);
 
-    router.push({
-      pathname: '/result',
-      params: {
-        result: JSON.stringify(result),
-      },
-    });
+      router.push({
+        pathname: '/result',
+        params: {
+          result: JSON.stringify(result),
+        },
+      });
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : 'Failed to reach the backend API.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -173,7 +357,7 @@ export default function EstimateScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>Select your product</Text>
             <Text style={styles.subtitle}>
-              Search if we know the brand and model, or type your own and continue anyway.
+              Search the brand, type the model manually, and continue with a clean estimate flow.
             </Text>
           </View>
 
@@ -209,116 +393,131 @@ export default function EstimateScreen() {
 
             {selectedBrand ? (
               <View style={styles.selectedChip}>
-                <Text style={styles.selectedChipText}>{selectedBrand}</Text>
+                <Text style={styles.selectedChipText}>{selectedBrand.name}</Text>
+                <Pressable onPress={handleBrandClear} hitSlop={10}>
+                  <Text style={styles.selectedChipAction}>x</Text>
+                </Pressable>
               </View>
             ) : null}
 
             {!selectedBrand ? (
               <>
+                {isPhoneCategory && isLoadingBrands ? (
+                  <Text style={styles.helperText}>Loading phone brands from the backend catalog...</Text>
+                ) : null}
                 <FlatList
                   data={filteredBrands}
-                  keyExtractor={(item) => item.slug}
+                  keyExtractor={(item) => item.slug ?? item.name}
                   scrollEnabled={false}
                   contentContainerStyle={styles.listContent}
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       style={styles.listItem}
-                      onPress={() => handleBrandSelect(item.name)}>
+                      onPress={() => handleBrandSelect(item)}>
                       <Text style={styles.listTitle}>{item.name}</Text>
-                      <Text style={styles.listSubtitle}>{item.models.length} models</Text>
+                      <Text style={styles.listSubtitle}>
+                        {isPhoneCategory ? 'Backend catalog brand' : 'Brand-based depreciation'}
+                      </Text>
                     </TouchableOpacity>
                   )}
                 />
 
-                {query.trim().length > 0 ? (
+                {!isPhoneCategory && query.trim().length > 0 ? (
                   <TouchableOpacity
                     style={styles.manualAction}
-                    onPress={() => handleBrandSelect(query.trim())}>
+                    onPress={() => handleBrandSelect({ name: query.trim() })}>
                     <Text style={styles.manualActionText}>Use &quot;{query.trim()}&quot; as brand</Text>
                   </TouchableOpacity>
                 ) : null}
               </>
             ) : null}
 
-            <Text style={styles.sectionTitle}>3. Search Model</Text>
-            {matchedBrand ? (
-              <>
-                <TextInput
-                  value={selectedModel ? '' : modelQuery}
-                  onChangeText={setModelQuery}
-                  placeholder="Search Model"
-                  placeholderTextColor="#64748b"
-                  style={styles.input}
-                />
+            {brandLoadError ? <Text style={styles.errorText}>{brandLoadError}</Text> : null}
 
-                {selectedModel ? (
-                  <View style={styles.selectedChip}>
-                    <Text style={styles.selectedChipText}>{selectedModel}</Text>
-                  </View>
-                ) : null}
-
-                {!selectedModel ? (
-                  <>
-                    <FlatList
-                      data={filteredModels}
-                      keyExtractor={(item) => item.slug}
-                      scrollEnabled={false}
-                      contentContainerStyle={styles.listContent}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                          style={styles.listItem}
-                          onPress={() => handleModelSelect(item.name)}>
-                          <Text style={styles.listTitle}>{item.name}</Text>
-                          <Text style={styles.listSubtitle}>
-                            Rs. {item.launchPrice} · {capitalize(item.segment)}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                    />
-
-                    {modelQuery.trim().length > 0 ? (
-                      <TouchableOpacity
-                        style={styles.manualAction}
-                        onPress={() => handleModelSelect(modelQuery.trim())}>
-                        <Text style={styles.manualActionText}>Use &quot;{modelQuery.trim()}&quot; as model</Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </>
-                ) : null}
-              </>
-            ) : (
+            <Text style={styles.sectionTitle}>3. Enter Model</Text>
+            <View style={styles.inputRow}>
               <TextInput
-                value={selectedModel ?? modelQuery}
-                onChangeText={(value) => {
-                  setModelQuery(value);
-                  setSelectedModel(value);
-                }}
-                placeholder="Search Model"
+                value={modelName}
+                onChangeText={handleModelChange}
+                placeholder={modelPlaceholder}
                 placeholderTextColor="#64748b"
-                style={styles.input}
+                style={[styles.input, styles.inputWithAction]}
               />
-            )}
+              {modelName.trim().length > 0 ? (
+                <Pressable style={styles.inlineAction} onPress={() => setModelName('')}>
+                  <Text style={styles.inlineActionText}>Clear</Text>
+                </Pressable>
+              ) : null}
+            </View>
 
-            {matchedModel ? (
-              <View style={styles.modelCard}>
-                <Text style={styles.modelTitle}>{matchedModel.name}</Text>
-                <Text style={styles.modelMeta}>
-                  Launch price: Rs. {matchedModel.launchPrice} · Released {matchedModel.releaseYear}
-                </Text>
+            {matchedBrand && modelName.trim().length === 0 && modelQuickPicks.length > 0 ? (
+              <View style={styles.quickPickSection}>
+                <Text style={styles.quickPickLabel}>Popular picks</Text>
+                <View style={styles.wrapRow}>
+                  {modelQuickPicks.map((item) => (
+                    <Pressable
+                      key={item}
+                      style={styles.quickPickChip}
+                      onPress={() => (isPhoneCategory ? handlePhoneModelSelect(item) : setModelName(item))}>
+                      <Text style={styles.quickPickText}>{item}</Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
             ) : null}
+
+            {matchedBrand && modelSuggestions.length > 0 ? (
+              <FlatList
+                data={modelSuggestions}
+                keyExtractor={(item) => item}
+                scrollEnabled={false}
+                contentContainerStyle={styles.listContent}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.listItem}
+                    onPress={() => (isPhoneCategory ? handlePhoneModelSelect(item) : setModelName(item))}>
+                    <Text style={styles.listTitle}>{item}</Text>
+                    <Text style={styles.listSubtitle}>
+                      {isPhoneCategory ? `Catalog model for ${matchedBrand.name}` : `Popular ${matchedBrand.name} model`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            ) : null}
+
+            {matchedBrand ? (
+              <Text style={styles.helperText}>
+                {isPhoneCategory
+                  ? `Using ${matchedBrand.name} from the backend catalog.${selectedPhoneModel ? ` Launch price auto-filled from ${selectedPhoneModel.releaseYear}.` : ' You can still type a manual model name.'}`
+                  : `Using ${matchedBrand.name} brand logic. Model stays manual in this release.`}
+              </Text>
+            ) : null}
+
+            {isPhoneCategory && selectedBrand && isLoadingModels ? (
+              <Text style={styles.helperText}>Loading phone models for {selectedBrand.name}...</Text>
+            ) : null}
+
+            {modelLoadError ? <Text style={styles.errorText}>{modelLoadError}</Text> : null}
 
             <Text style={styles.sectionTitle}>4. Add Details</Text>
 
             <Text style={styles.label}>Original price</Text>
             <TextInput
               value={originalPrice}
-              onChangeText={setOriginalPrice}
+              onChangeText={(value) => {
+                setOriginalPrice(value);
+                setApiError('');
+              }}
               placeholder="50000"
               placeholderTextColor="#64748b"
               style={styles.input}
               keyboardType="numeric"
             />
+            {isPhoneCategory && selectedPhoneModel ? (
+              <Text style={styles.helperText}>
+                Auto-filled from the catalog launch price for {selectedPhoneModel.name}. You can still edit it.
+              </Text>
+            ) : null}
 
             <Text style={styles.sectionTitle}>5. Condition Assessment</Text>
 
@@ -430,10 +629,13 @@ export default function EstimateScreen() {
               ))}
             </View>
 
-            {validationMessage ? <Text style={styles.errorText}>{validationMessage}</Text> : null}
+            {activeErrorMessage ? <Text style={styles.errorText}>{activeErrorMessage}</Text> : null}
 
-            <Pressable style={styles.button} onPress={handleEstimate}>
-              <Text style={styles.buttonText}>6. View Result</Text>
+            <Pressable
+              style={[styles.button, isSubmitting && styles.buttonDisabled]}
+              onPress={handleEstimate}
+              disabled={isSubmitting}>
+              <Text style={styles.buttonText}>{isSubmitting ? 'Calculating...' : '6. View Result'}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -536,6 +738,7 @@ const styles = StyleSheet.create({
     color: '#dcfce7',
   },
   input: {
+    flex: 1,
     backgroundColor: '#162338',
     borderRadius: 14,
     borderWidth: 1,
@@ -545,8 +748,32 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
     fontSize: 16,
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  inputWithAction: {
+    flex: 1,
+  },
+  inlineAction: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#13273f',
+    borderWidth: 1,
+    borderColor: '#22304a',
+  },
+  inlineActionText: {
+    color: '#cbd5e1',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   selectedChip: {
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     backgroundColor: '#10261a',
     borderColor: '#22c55e',
     borderWidth: 1,
@@ -558,6 +785,12 @@ const styles = StyleSheet.create({
     color: '#bbf7d0',
     fontSize: 13,
     fontWeight: '700',
+  },
+  selectedChipAction: {
+    color: '#86efac',
+    fontSize: 14,
+    fontWeight: '800',
+    lineHeight: 16,
   },
   listItem: {
     backgroundColor: '#111c30',
@@ -575,6 +808,27 @@ const styles = StyleSheet.create({
   listSubtitle: {
     color: '#94a3b8',
     fontSize: 13,
+  },
+  quickPickSection: {
+    gap: 10,
+  },
+  quickPickLabel: {
+    color: '#cbd5e1',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  quickPickChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: '#13273f',
+    borderWidth: 1,
+    borderColor: '#22304a',
+  },
+  quickPickText: {
+    color: '#dbeafe',
+    fontSize: 13,
+    fontWeight: '700',
   },
   manualAction: {
     alignSelf: 'flex-start',
@@ -624,6 +878,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: '#03120a',
