@@ -11,14 +11,14 @@ export type UsageIntensity = 'light' | 'moderate' | 'heavy';
 export type RepairHistory = 'no' | 'minor' | 'major';
 
 export type ConditionData = {
-  physical: Condition;
-  screen: ScreenCondition;
-  battery: BatteryCondition;
+  physical: Condition | null;
+  screen: ScreenCondition | null;
+  battery: BatteryCondition | null;
   age: number;
-  usage: UsageIntensity;
-  accessories: 'yes' | 'no';
-  repairs: RepairHistory;
-  warranty: 'yes' | 'no';
+  usage: UsageIntensity | null;
+  accessories: 'yes' | 'no' | null;
+  repairs: RepairHistory | null;
+  warranty: 'yes' | 'no' | null;
 };
 
 export type EstimateInput = {
@@ -27,7 +27,7 @@ export type EstimateInput = {
   modelName?: string;
   originalPrice: number;
   ageInMonths: number;
-  condition: Condition;
+  condition: Condition | null;
   conditionData: ConditionData;
 };
 
@@ -50,13 +50,6 @@ const conditionMultiplier: Record<Condition, number> = {
   poor: 0.68,
 };
 
-const segmentMultiplier = {
-  flagship: 1.06,
-  premium: 1.03,
-  midrange: 0.96,
-  budget: 0.9,
-};
-
 export function getValidationMessage(input: EstimateInput) {
   const category = getCategoryDefinition(input.category);
   if (!category) {
@@ -71,12 +64,36 @@ export function getValidationMessage(input: EstimateInput) {
     return 'Age must be 0 months or more.';
   }
 
-  if (!conditions.includes(input.condition)) {
-    return 'Please choose a valid condition.';
+  if (!input.condition || !conditions.includes(input.condition)) {
+    return 'Please choose a physical condition.';
+  }
+
+  if (!input.conditionData.screen) {
+    return 'Please choose a screen condition.';
+  }
+
+  if (!input.conditionData.battery) {
+    return 'Please choose a battery condition.';
   }
 
   if (!Number.isFinite(input.conditionData.age) || input.conditionData.age < 0) {
     return 'Condition assessment age must be 0 months or more.';
+  }
+
+  if (!input.conditionData.usage) {
+    return 'Please choose a usage intensity.';
+  }
+
+  if (!input.conditionData.accessories) {
+    return 'Please choose whether original accessories are available.';
+  }
+
+  if (!input.conditionData.repairs) {
+    return 'Please choose the repair history.';
+  }
+
+  if (!input.conditionData.warranty) {
+    return 'Please choose whether warranty is available.';
   }
 
   return '';
@@ -90,18 +107,13 @@ export function estimateResalePrice(input: EstimateInput): EstimateResult {
 
   const category = getCategoryDefinition(input.category)!;
   const normalizedBrandName = (input.brandName ?? '').trim().toLowerCase();
-  const normalizedModelName = (input.modelName ?? '').trim().toLowerCase();
 
   const brand =
     category.brands.find((entry) => entry.name.toLowerCase() === normalizedBrandName) ?? null;
-  const model =
-    brand?.models.find((entry) => entry.name.toLowerCase() === normalizedModelName) ?? null;
 
   const brandPremium = brand?.brandPremium ?? 0.015;
   const monthlyDepreciation = brand?.monthlyDepreciation ?? 0.024;
   const floorRetention = brand?.floorRetention ?? 0.22;
-  const modelRetentionBoost = model?.modelRetentionBoost ?? 0;
-  const segment = model?.segment ?? 'midrange';
 
   const ageFactor = Math.max(
     floorRetention,
@@ -112,9 +124,7 @@ export function estimateResalePrice(input: EstimateInput): EstimateResult {
     input.originalPrice *
     category.baseRetention *
     (1 + brandPremium) *
-    (1 + modelRetentionBoost) *
-    segmentMultiplier[segment] *
-    conditionMultiplier[input.condition] *
+    conditionMultiplier[input.condition!] *
     ageFactor;
 
   let conditionScore = 1;
@@ -139,10 +149,10 @@ export function estimateResalePrice(input: EstimateInput): EstimateResult {
   );
   const resaleScore = Math.max(
     20,
-    Math.min(100, Math.round((estimatedPrice / input.originalPrice) * 100 + conditionMultiplier[input.condition] * 10))
+    Math.min(100, Math.round((estimatedPrice / input.originalPrice) * 100 + conditionMultiplier[input.condition!] * 10))
   );
   const resolvedBrandLabel = brand?.name ?? input.brandName?.trim() ?? 'Custom Brand';
-  const resolvedModelLabel = model?.name ?? input.modelName?.trim() ?? 'Custom Model';
+  const resolvedModelLabel = input.modelName?.trim() || 'Manual Model';
 
   return {
     ...input,
@@ -157,16 +167,15 @@ export function estimateResalePrice(input: EstimateInput): EstimateResult {
     keyFactors: [
       `Brand: ${resolvedBrandLabel}`,
       `Model: ${resolvedModelLabel}`,
-      `Condition: ${capitalize(input.condition)}`,
+      `Condition: ${capitalize(input.condition!)}`,
       `Age: ${input.ageInMonths} months`,
-      `Segment: ${capitalize(segment)}`,
-      `Screen: ${capitalizeWords(input.conditionData.screen)}`,
-      `Battery: ${capitalize(input.conditionData.battery)}`,
-      `Usage: ${capitalize(input.conditionData.usage)}`,
-      `Accessories: ${capitalize(input.conditionData.accessories)}`,
-      `Repairs: ${capitalize(input.conditionData.repairs)}`,
-      `Warranty: ${capitalize(input.conditionData.warranty)}`,
-      model ? `Launch price anchor: Rs. ${model.launchPrice}` : 'Manual model estimation',
+      `Screen: ${capitalizeWords(input.conditionData.screen!)}`,
+      `Battery: ${capitalize(input.conditionData.battery!)}`,
+      `Usage: ${capitalize(input.conditionData.usage!)}`,
+      `Accessories: ${capitalize(input.conditionData.accessories!)}`,
+      `Repairs: ${capitalize(input.conditionData.repairs!)}`,
+      `Warranty: ${capitalize(input.conditionData.warranty!)}`,
+      'Brand-based manual model estimation',
     ],
   };
 }
