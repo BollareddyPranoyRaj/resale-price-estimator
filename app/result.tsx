@@ -1,24 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-
-type ResultPayload = {
-  categoryLabel: string;
-  brandLabel: string;
-  modelLabel: string;
-  originalPrice: number;
-  ageInMonths: number;
-  condition: string;
-  estimatedPrice: number;
-  minPrice: number;
-  maxPrice: number;
-  depreciationPercent: number;
-  resaleScore: number;
-  keyFactors: string[];
-};
+import type { EstimateResult } from '@/lib/api';
 
 export default function ResultScreen() {
   const params = useLocalSearchParams<{ result?: string }>();
-  const parsedResult: ResultPayload | null = params.result ? JSON.parse(params.result) : null;
+  const parsedResult = safeParseResult(params.result);
 
   if (!parsedResult) {
     return (
@@ -96,6 +82,18 @@ export default function ResultScreen() {
 
 function capitalize(value: string) {
   return value[0].toUpperCase() + value.slice(1);
+}
+
+function safeParseResult(value?: string): EstimateResult | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(value) as EstimateResult;
+  } catch {
+    return null;
+  }
 }
 
 const styles = StyleSheet.create({
