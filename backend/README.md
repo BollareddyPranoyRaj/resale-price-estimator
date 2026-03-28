@@ -1,6 +1,6 @@
 # Resale App Backend
 
-Phone-focused Express REST API for resale price estimates.
+Express REST API for resale estimates and phone catalog data.
 
 ## Run
 
@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-The API runs by default at `http://localhost:5000`.
+The API runs at `http://localhost:5000` by default.
 
 ## Endpoints
 
@@ -18,50 +18,65 @@ The API runs by default at `http://localhost:5000`.
 
 Health check endpoint.
 
+### `POST /api/estimates`
+
+Generic estimate endpoint used for categories such as laptops, tablets, and accessories.
+
+Example request:
+
+```json
+{
+  "category": "laptops",
+  "brandName": "Apple",
+  "modelName": "MacBook Air",
+  "originalPrice": 89999,
+  "ageInMonths": 18,
+  "condition": "good",
+  "conditionData": {
+    "physical": "good",
+    "screen": "no scratches",
+    "battery": "good",
+    "age": 18,
+    "usage": "moderate",
+    "accessories": "yes",
+    "repairs": "no",
+    "warranty": "no"
+  }
+}
+```
+
 ### `GET /api/phones/brands`
 
-Returns all supported phone brands in the catalog database.
+Returns supported phone brands from the backend catalog.
 
 ### `GET /api/phones/brands/:brandSlug/models`
 
-Returns all models for a given brand.
+Returns the known models for a phone brand.
 
 ### `POST /api/phones/estimate`
 
-Request body:
+Phone-specific estimate endpoint backed by the catalog.
+
+Example request:
 
 ```json
 {
   "brandSlug": "apple",
+  "brandName": "Apple",
   "modelSlug": "iphone-13",
+  "modelName": "iPhone 13",
+  "originalPrice": 59900,
   "ageInMonths": 24,
   "condition": "good",
-  "storage": "128GB"
-}
-```
-
-Response:
-
-```json
-{
-  "message": "Phone estimate calculated successfully.",
-  "data": {
-    "category": "electronics",
-    "itemType": "phone",
-    "brand": "Apple",
-    "brandSlug": "apple",
-    "model": "iPhone 13",
-    "modelSlug": "iphone-13",
-    "launchPrice": 59900,
-    "originalPrice": 59900,
-    "ageInMonths": 24,
-    "condition": "good",
-    "storage": "128GB",
-    "estimatedPrice": 31995,
-    "minPrice": 28795,
-    "maxPrice": 35195,
-    "depreciationPercent": 47,
-    "retentionScore": 53
+  "conditionData": {
+    "physical": "good",
+    "screen": "no scratches",
+    "battery": "good",
+    "age": 24,
+    "usage": "moderate",
+    "accessories": "yes",
+    "repairs": "no",
+    "warranty": "no"
   }
 }
 ```
