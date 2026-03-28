@@ -10,6 +10,14 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'resale-app-api',
+    message: 'API is running. Use /api/health for the health check endpoint.',
+  });
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
