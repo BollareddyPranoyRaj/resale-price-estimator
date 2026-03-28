@@ -1,50 +1,75 @@
-# Welcome to your Expo app 👋
+# Resale App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo frontend plus a local Express API for resale-price estimates.
 
-## Get started
+## Project Structure
 
-1. Install dependencies
+- `app/`: Expo Router screens
+- `lib/`: frontend API helpers, validation, and catalog helpers
+- `backend/`: Express API, phone catalog, and estimation services
 
-   ```bash
-   npm install
-   ```
+## Run The App
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+1. Install frontend dependencies:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install backend dependencies:
 
-## Learn more
+```bash
+cd backend
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Start the backend API:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+cd backend
+npm run dev
+```
 
-## Join the community
+4. Start the Expo app in a separate terminal:
 
-Join our community of developers creating universal apps.
+```bash
+npm start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The frontend expects the API at `http://localhost:5000/api` by default.
+
+## API Base URL
+
+You can override the API base URL with:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=http://<your-host>:5000/api
+```
+
+If no env var is provided, the app resolves a local URL from Expo host info and falls back to:
+
+- Android emulator: `http://10.0.2.2:5000/api`
+- iOS simulator / local desktop: `http://127.0.0.1:5000/api`
+
+## Main Endpoints
+
+- `GET /api/health`
+- `POST /api/estimates`
+- `GET /api/phones/brands`
+- `GET /api/phones/brands/:brandSlug/models`
+- `POST /api/phones/estimate`
+
+## Checks
+
+Frontend lint:
+
+```bash
+npm run lint
+```
+
+Backend tests:
+
+```bash
+cd backend
+npm test
+```
