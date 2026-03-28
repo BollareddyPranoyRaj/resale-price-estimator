@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "resale-app",
+    "name": "Resale Price Estimator",
     "slug": "resale-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,9 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bollareddypranoyraj.resaleapp"
     },
     "android": {
+      "package": "com.bollareddypranoyraj.resaleapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -43,6 +45,9 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

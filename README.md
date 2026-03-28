@@ -73,3 +73,64 @@ Backend tests:
 cd backend
 npm test
 ```
+
+## Deploy For Phone Testing
+
+To install this app on a real phone without relying on your laptop each time:
+
+1. Deploy the backend first.
+
+Render is the simplest option in this repo because [render.yaml](/Users/bollareddypranoyraj/resale-app/render.yaml) is already included.
+
+Your production backend URL will look like:
+
+```bash
+https://your-render-service.onrender.com/api
+```
+
+2. Create a local env file from the example:
+
+```bash
+cp .env.example .env
+```
+
+Then set:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=https://your-render-service.onrender.com/api
+```
+
+3. Install EAS CLI and log in:
+
+```bash
+npm install -g eas-cli
+eas login
+```
+
+4. Configure the Expo project if this is your first build:
+
+```bash
+eas build:configure
+```
+
+5. Build an installable phone app:
+
+Preview build for direct phone install:
+
+```bash
+eas build --platform android --profile preview
+eas build --platform ios --profile preview
+```
+
+Production build for stores:
+
+```bash
+eas build --platform android --profile production
+eas build --platform ios --profile production
+```
+
+Notes:
+
+- Android package: `com.bollareddypranoyraj.resaleapp`
+- iOS bundle identifier: `com.bollareddypranoyraj.resaleapp`
+- Expo Go is for development, but EAS builds are what you install on your phone for demos or store submission.
