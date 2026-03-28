@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
+const estimatesRouter = require('./routes/estimates');
 const phonesRouter = require('./routes/phones');
 
 const app = express();
@@ -17,6 +18,7 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+app.use('/api/estimates', estimatesRouter);
 app.use('/api/phones', phonesRouter);
 
 app.use((err, _req, res, _next) => {
@@ -26,6 +28,12 @@ app.use((err, _req, res, _next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Resale API listening on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Resale API listening on port ${PORT}`);
+  });
+}
+
+module.exports = {
+  app,
+};
