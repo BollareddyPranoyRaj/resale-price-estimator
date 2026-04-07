@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bollareddypranoyraj.resaleapp"
+      "bundleIdentifier": "com.bollareddypranoyraj.resaleapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.bollareddypranoyraj.resaleapp",
@@ -48,6 +51,12 @@
     },
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "db4b0062-1c5d-4ca4-ac34-45ba6a3a77d4"
+      }
     }
   }
 }
