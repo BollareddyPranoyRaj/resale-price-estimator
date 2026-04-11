@@ -46,6 +46,9 @@ export type EstimateResult = {
   depreciationPercent: number;
   resaleScore: number;
   keyFactors: string[];
+  estimateSource?: 'catalog' | 'manual';
+  storage?: string;
+  launchPrice?: number | null;
 };
 
 export type PhoneBrand = {
@@ -81,6 +84,7 @@ type GenericEstimateResponse = {
   depreciationPercent: number;
   resaleScore: number;
   keyFactors: string[];
+  estimateSource?: 'catalog' | 'manual';
 };
 
 type PhoneEstimateResponse = {
@@ -96,6 +100,7 @@ type PhoneEstimateResponse = {
   retentionScore: number;
   storage: string;
   launchPrice: number | null;
+  estimateSource: 'catalog' | 'manual';
 };
 
 export function getApiBaseUrl() {
@@ -175,7 +180,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<ApiEnve
     });
   } catch {
     throw new Error(
-      'Could not reach the backend API. Start the backend server and confirm the API base URL.'
+      `Could not reach the backend API at ${getApiBaseUrl()}. Start the backend server or update EXPO_PUBLIC_API_BASE_URL.`
     );
   }
 
@@ -191,7 +196,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<ApiEnve
   }
 
   if (!data || data.data === undefined) {
-    throw new Error('Backend returned an empty response. Check that the API server is running.');
+    throw new Error(`Backend returned an empty response from ${getApiBaseUrl()}.`);
   }
 
   return data as ApiEnvelope<T>;
@@ -212,12 +217,16 @@ function mapPhoneEstimate(data: PhoneEstimateResponse): EstimateResult {
     maxPrice: data.maxPrice,
     depreciationPercent: data.depreciationPercent,
     resaleScore: data.retentionScore,
+    estimateSource: data.estimateSource,
+    storage: data.storage,
+    launchPrice: data.launchPrice,
     keyFactors: [
       `Brand: ${data.brand}`,
       `Model: ${data.model}`,
       `Condition: ${capitalize(data.condition)}`,
       `Age: ${data.ageInMonths} months`,
       `Storage: ${data.storage}`,
+      data.estimateSource === 'catalog' ? 'Catalog-backed phone model' : 'Manual phone model fallback',
       launchPriceLine,
     ],
   };
