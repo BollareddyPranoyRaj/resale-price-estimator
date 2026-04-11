@@ -134,3 +134,7 @@ Notes:
 - Android package: `com.bollareddypranoyraj.resaleapp`
 - iOS bundle identifier: `com.bollareddypranoyraj.resaleapp`
 - Expo Go is for development, but EAS builds are what you install on your phone for demos or store submission.
+
+## Publish Checklist
+
+Use [RELEASE.md](/Users/bollareddypranoyraj/resale-app/RELEASE.md:1) for the backend deploy, Expo environment setup, EAS build, and store submission flow.
