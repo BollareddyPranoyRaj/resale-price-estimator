@@ -29,12 +29,26 @@ export default function ResultScreen() {
           {parsedResult.brandLabel} · {capitalize(parsedResult.condition)} condition
         </Text>
 
+        <View style={styles.sourcePill}>
+          <Text style={styles.sourcePillText}>
+            {parsedResult.estimateSource === 'catalog'
+              ? 'Catalog-backed estimate'
+              : 'Manual estimate logic'}
+          </Text>
+        </View>
+
         <View style={styles.priceCard}>
           <Text style={styles.priceLabel}>Estimated resale price</Text>
           <Text style={styles.priceValue}>Rs. {parsedResult.estimatedPrice}</Text>
           <Text style={styles.rangeText}>
             Range: Rs. {parsedResult.minPrice} to Rs. {parsedResult.maxPrice}
           </Text>
+          {parsedResult.launchPrice ? (
+            <Text style={styles.supportingText}>Launch price reference: Rs. {parsedResult.launchPrice}</Text>
+          ) : null}
+          {parsedResult.storage ? (
+            <Text style={styles.supportingText}>Storage profile used: {parsedResult.storage}</Text>
+          ) : null}
         </View>
 
         <View style={styles.metricsRow}>
@@ -140,6 +154,20 @@ const styles = StyleSheet.create({
     borderColor: '#1e293b',
     gap: 8,
   },
+  sourcePill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#0c2434',
+    borderWidth: 1,
+    borderColor: '#164e63',
+  },
+  sourcePillText: {
+    color: '#67e8f9',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   priceLabel: {
     color: '#cbd5e1',
     fontSize: 15,
@@ -154,6 +182,11 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 15,
     lineHeight: 22,
+  },
+  supportingText: {
+    color: '#cbd5e1',
+    fontSize: 14,
+    lineHeight: 21,
   },
   metricsRow: {
     flexDirection: 'row',
