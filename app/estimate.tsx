@@ -100,6 +100,12 @@ export default function EstimateScreen() {
     );
   }, [availableBrands, selectedBrand]);
 
+  const selectedPhoneBrand = useMemo(
+    () =>
+      selectedBrand?.slug ? phoneBrands.find((brand) => brand.slug === selectedBrand.slug) ?? null : null,
+    [phoneBrands, selectedBrand]
+  );
+
   const filteredBrands = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
@@ -416,7 +422,9 @@ export default function EstimateScreen() {
                       onPress={() => handleBrandSelect(item)}>
                       <Text style={styles.listTitle}>{item.name}</Text>
                       <Text style={styles.listSubtitle}>
-                        {isPhoneCategory ? 'Backend catalog brand' : 'Brand-based depreciation'}
+                        {isPhoneCategory
+                          ? `${phoneBrands.find((brand) => brand.slug === item.slug)?.modelCount ?? 0} catalog models`
+                          : 'Brand-based depreciation'}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -444,7 +452,12 @@ export default function EstimateScreen() {
                 style={[styles.input, styles.inputWithAction]}
               />
               {modelName.trim().length > 0 ? (
-                <Pressable style={styles.inlineAction} onPress={() => setModelName('')}>
+                <Pressable
+                  style={styles.inlineAction}
+                  onPress={() => {
+                    setModelName('');
+                    setSelectedPhoneModel(null);
+                  }}>
                   <Text style={styles.inlineActionText}>Clear</Text>
                 </Pressable>
               ) : null}
@@ -488,7 +501,7 @@ export default function EstimateScreen() {
             {matchedBrand ? (
               <Text style={styles.helperText}>
                 {isPhoneCategory
-                  ? `Using ${matchedBrand.name} from the backend catalog.${selectedPhoneModel ? ` Launch price auto-filled from ${selectedPhoneModel.releaseYear}.` : ' You can still type a manual model name.'}`
+                  ? `Using ${matchedBrand.name} from the backend catalog.${selectedPhoneModel ? ` Launch price auto-filled from ${selectedPhoneModel.releaseYear}.` : selectedPhoneBrand?.modelCount ? ' You can still type a manual model name.' : ' No catalog models yet for this brand, so this estimate will use manual model fallback.'}`
                   : `Using ${matchedBrand.name} brand logic. Model stays manual in this release.`}
               </Text>
             ) : null}
@@ -498,6 +511,20 @@ export default function EstimateScreen() {
             ) : null}
 
             {modelLoadError ? <Text style={styles.errorText}>{modelLoadError}</Text> : null}
+
+            {isPhoneCategory &&
+            selectedBrand &&
+            !isLoadingModels &&
+            !modelLoadError &&
+            phoneModels.length === 0 ? (
+              <View style={styles.noticeCard}>
+                <Text style={styles.noticeTitle}>Manual model estimate</Text>
+                <Text style={styles.noticeText}>
+                  {selectedBrand.name} is supported, but this catalog does not have phone models yet.
+                  Enter the model name and original price manually to continue.
+                </Text>
+              </View>
+            ) : null}
 
             <Text style={styles.sectionTitle}>4. Add Details</Text>
 
@@ -709,6 +736,24 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: 10,
+  },
+  noticeCard: {
+    backgroundColor: '#101f16',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1f5131',
+    gap: 6,
+  },
+  noticeTitle: {
+    color: '#bbf7d0',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  noticeText: {
+    color: '#dcfce7',
+    fontSize: 14,
+    lineHeight: 21,
   },
   pill: {
     paddingHorizontal: 14,
