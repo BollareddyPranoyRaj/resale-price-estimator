@@ -200,6 +200,7 @@ function estimateResale(input) {
     maxPrice,
     depreciationPercent,
     resaleScore,
+    estimateSource: 'manual',
     keyFactors: [
       `Brand: ${resolvedBrandLabel}`,
       `Model: ${resolvedModelLabel}`,
