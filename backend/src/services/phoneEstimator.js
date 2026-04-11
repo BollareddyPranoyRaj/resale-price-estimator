@@ -142,6 +142,7 @@ function estimatePhoneResale(input) {
     Math.min(95, Math.round(((sourcePrice - estimatedPrice) / sourcePrice) * 100))
   );
   const retentionScore = Math.max(20, Math.min(100, Math.round((estimatedPrice / sourcePrice) * 100)));
+  const estimateSource = knownModel ? 'catalog' : 'manual';
 
   return {
     category: 'electronics',
@@ -161,6 +162,7 @@ function estimatePhoneResale(input) {
     maxPrice,
     depreciationPercent,
     retentionScore,
+    estimateSource,
     appliedRules: {
       baseRetention: profile.baseRetention,
       monthlyDepreciation: profile.monthlyDepreciation,
