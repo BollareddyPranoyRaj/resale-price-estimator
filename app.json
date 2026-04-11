@@ -2,6 +2,7 @@
   "expo": {
     "name": "Resale Price Estimator",
     "slug": "resale-app",
+    "description": "Mobile resale price estimator for phones, laptops, tablets, and accessories.",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,12 +12,14 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bollareddypranoyraj.resaleapp",
+      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.bollareddypranoyraj.resaleapp",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
