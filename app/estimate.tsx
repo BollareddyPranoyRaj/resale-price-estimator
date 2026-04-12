@@ -123,14 +123,15 @@ export default function EstimateScreen() {
 
     if (isPhoneCategory) {
       const normalizedModelQuery = modelName.trim().toLowerCase();
+      const availablePhoneModels = phoneModels.map((model) => model.name);
 
       if (!normalizedModelQuery) {
-        return [];
+        return availablePhoneModels;
       }
 
-      return phoneModels
-        .filter((model) => model.name.toLowerCase().includes(normalizedModelQuery))
-        .map((model) => model.name);
+      return availablePhoneModels.filter((model) =>
+        model.toLowerCase().includes(normalizedModelQuery)
+      );
     }
 
     return getPopularModelSuggestions(matchedBrand.slug, modelName);
@@ -142,7 +143,7 @@ export default function EstimateScreen() {
     }
 
     if (isPhoneCategory) {
-      return phoneModels.slice(0, 3).map((model) => model.name);
+      return [];
     }
 
     return getPopularModelQuickPicks(matchedBrand.slug);
