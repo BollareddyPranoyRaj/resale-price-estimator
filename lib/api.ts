@@ -3,7 +3,6 @@ import { Platform } from 'react-native';
 
 const envBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
 
-export type EstimateCategory = 'phones' | 'laptops' | 'tablets' | 'accessories';
 export type EstimateCondition = 'excellent' | 'good' | 'fair' | 'poor';
 export type ScreenCondition = 'no scratches' | 'minor' | 'cracked';
 export type BatteryCondition = 'good' | 'average' | 'poor';
@@ -22,7 +21,6 @@ export type EstimateConditionData = {
 };
 
 export type EstimateRequest = {
-  category: EstimateCategory;
   brandName?: string;
   brandSlug?: string;
   modelName?: string;
@@ -46,7 +44,6 @@ export type EstimateResult = {
   depreciationPercent: number;
   resaleScore: number;
   keyFactors: string[];
-  estimateSource?: 'catalog' | 'manual';
   storage?: string;
   launchPrice?: number | null;
 };
@@ -71,23 +68,10 @@ type ApiEnvelope<T> = {
   message?: string;
 };
 
-type GenericEstimateResponse = {
-  categoryLabel: string;
-  brandLabel: string;
-  modelLabel: string;
-  originalPrice: number;
-  ageInMonths: number;
-  condition: string;
-  estimatedPrice: number;
-  minPrice: number;
-  maxPrice: number;
-  depreciationPercent: number;
-  resaleScore: number;
-  keyFactors: string[];
-  estimateSource?: 'catalog' | 'manual';
-};
-
 type PhoneEstimateResponse = {
+  categoryLabel?: string;
+  brandLabel?: string;
+  modelLabel?: string;
   brand: string;
   model: string;
   originalPrice: number;
@@ -100,7 +84,7 @@ type PhoneEstimateResponse = {
   retentionScore: number;
   storage: string;
   launchPrice: number | null;
-  estimateSource: 'catalog' | 'manual';
+  keyFactors?: string[];
 };
 
 export function getApiBaseUrl() {
@@ -133,30 +117,12 @@ export async function getPhoneModels(brandSlug: string) {
 }
 
 export async function postEstimate(payload: EstimateRequest): Promise<EstimateResult> {
-  if (payload.category === 'phones' && payload.brandSlug) {
-    const response = await requestJson<PhoneEstimateResponse>('/phones/estimate', {
-      method: 'POST',
-      body: JSON.stringify({
-        brandSlug: payload.brandSlug,
-        brandName: payload.brandName,
-        modelSlug: payload.modelSlug,
-        modelName: payload.modelName,
-        originalPrice: payload.originalPrice,
-        ageInMonths: payload.ageInMonths,
-        condition: payload.condition,
-        conditionData: payload.conditionData,
-      }),
-    });
-
-    return mapPhoneEstimate(response.data);
-  }
-
-  const response = await requestJson<GenericEstimateResponse>('/estimates', {
+  const response = await requestJson<PhoneEstimateResponse>('/phones/estimate', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 
-  return response.data;
+  return mapPhoneEstimate(response.data);
 }
 
 function safeParseJson(value: string) {
@@ -203,12 +169,22 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<ApiEnve
 }
 
 function mapPhoneEstimate(data: PhoneEstimateResponse): EstimateResult {
-  const launchPriceLine = data.launchPrice ? `Launch price: Rs. ${data.launchPrice}` : 'Manual phone estimate';
+  const defaultKeyFactors = [
+    `Brand: ${data.brand}`,
+    `Model: ${data.model}`,
+    `Condition: ${capitalize(data.condition)}`,
+    `Age: ${data.ageInMonths} months`,
+    `Storage: ${data.storage}`,
+  ];
+
+  if (data.launchPrice) {
+    defaultKeyFactors.push(`Launch price: Rs. ${data.launchPrice}`);
+  }
 
   return {
-    categoryLabel: 'Phones',
-    brandLabel: data.brand,
-    modelLabel: data.model,
+    categoryLabel: data.categoryLabel ?? 'Phones',
+    brandLabel: data.brandLabel ?? data.brand,
+    modelLabel: data.modelLabel ?? data.model,
     originalPrice: data.originalPrice,
     ageInMonths: data.ageInMonths,
     condition: data.condition,
@@ -217,18 +193,9 @@ function mapPhoneEstimate(data: PhoneEstimateResponse): EstimateResult {
     maxPrice: data.maxPrice,
     depreciationPercent: data.depreciationPercent,
     resaleScore: data.retentionScore,
-    estimateSource: data.estimateSource,
     storage: data.storage,
     launchPrice: data.launchPrice,
-    keyFactors: [
-      `Brand: ${data.brand}`,
-      `Model: ${data.model}`,
-      `Condition: ${capitalize(data.condition)}`,
-      `Age: ${data.ageInMonths} months`,
-      `Storage: ${data.storage}`,
-      data.estimateSource === 'catalog' ? 'Catalog-backed phone model' : 'Manual phone model fallback',
-      launchPriceLine,
-    ],
+    keyFactors: data.keyFactors?.length ? data.keyFactors : defaultKeyFactors,
   };
 }
 
