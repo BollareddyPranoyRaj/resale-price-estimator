@@ -1,12 +1,12 @@
 # Resale App
 
-Expo frontend plus a local Express API for resale-price estimates.
+Expo frontend plus a local Express API proxy for phone resale workflows.
 
 ## Project Structure
 
 - `app/`: Expo Router screens
-- `lib/`: frontend API helpers, validation, and catalog helpers
-- `backend/`: Express API, phone catalog, and estimation services
+- `lib/`: frontend API helpers and request validation
+- `backend/`: Express API proxy and upstream integration layer
 
 ## Run The App
 
@@ -54,10 +54,13 @@ If no env var is provided, the app resolves a local URL from Expo host info and 
 ## Main Endpoints
 
 - `GET /api/health`
-- `POST /api/estimates`
 - `GET /api/phones/brands`
 - `GET /api/phones/brands/:brandSlug/models`
 - `POST /api/phones/estimate`
+
+The backend no longer ships embedded business catalogs or local estimation formulas. Set
+`UPSTREAM_API_BASE_URL` in the backend environment so brand, model, and estimate requests are
+forwarded to your production data service.
 
 ## Checks
 
