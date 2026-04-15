@@ -30,11 +30,7 @@ export default function ResultScreen() {
         </Text>
 
         <View style={styles.sourcePill}>
-          <Text style={styles.sourcePillText}>
-            {parsedResult.estimateSource === 'catalog'
-              ? 'Catalog-backed estimate'
-              : 'Manual estimate logic'}
-          </Text>
+          <Text style={styles.sourcePillText}>Backend estimate</Text>
         </View>
 
         <View style={styles.priceCard}>
