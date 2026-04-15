@@ -1,6 +1,6 @@
 # Resale App Backend
 
-Express REST API for resale estimates and phone catalog data.
+Express REST API proxy for phone brand, model, and estimate requests.
 
 ## Run
 
@@ -12,50 +12,26 @@ npm run dev
 
 The API runs at `http://localhost:5000` by default.
 
+Set `UPSTREAM_API_BASE_URL` to the production catalog and estimation API before starting the
+server. The backend does not include embedded business data or local estimation logic.
+
 ## Endpoints
 
 ### `GET /api/health`
 
 Health check endpoint.
 
-### `POST /api/estimates`
-
-Generic estimate endpoint used for categories such as laptops, tablets, and accessories.
-
-Example request:
-
-```json
-{
-  "category": "laptops",
-  "brandName": "Apple",
-  "modelName": "MacBook Air",
-  "originalPrice": 89999,
-  "ageInMonths": 18,
-  "condition": "good",
-  "conditionData": {
-    "physical": "good",
-    "screen": "no scratches",
-    "battery": "good",
-    "age": 18,
-    "usage": "moderate",
-    "accessories": "yes",
-    "repairs": "no",
-    "warranty": "no"
-  }
-}
-```
-
 ### `GET /api/phones/brands`
 
-Returns supported phone brands from the backend catalog.
+Returns supported phone brands from the upstream API.
 
 ### `GET /api/phones/brands/:brandSlug/models`
 
-Returns the known models for a phone brand.
+Returns the models for a phone brand from the upstream API.
 
 ### `POST /api/phones/estimate`
 
-Phone-specific estimate endpoint backed by the catalog.
+Phone-specific estimate endpoint proxied to the upstream API.
 
 Example request:
 
