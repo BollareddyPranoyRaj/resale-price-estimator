@@ -11,7 +11,8 @@ export default function HomeScreen() {
           <Text style={styles.eyebrow}>Smart resale guidance</Text>
           <Text style={styles.title}>Resale Price Estimator</Text>
           <Text style={styles.subtitle}>
-            Start with category, choose the brand and model, then get a fast resale estimate.
+            Search phone brands and models from the API, then request a backend-generated resale
+            estimate.
           </Text>
 
           <Pressable style={styles.button} onPress={() => router.push('/estimate')}>
@@ -21,12 +22,12 @@ export default function HomeScreen() {
 
         <View style={styles.infoRow}>
           <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>Phase 1</Text>
-            <Text style={styles.infoValue}>Phones to accessories</Text>
+            <Text style={styles.infoLabel}>Catalog</Text>
+            <Text style={styles.infoValue}>API only</Text>
           </View>
           <View style={styles.infoCard}>
             <Text style={styles.infoLabel}>Flow</Text>
-            <Text style={styles.infoValue}>Category to result</Text>
+            <Text style={styles.infoValue}>Brand to model to estimate</Text>
           </View>
         </View>
       </ScrollView>
