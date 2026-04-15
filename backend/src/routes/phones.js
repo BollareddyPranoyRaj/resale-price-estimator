@@ -1,40 +1,35 @@
 const express = require('express');
 
+const { CONDITIONS, validatePhoneEstimateInput } = require('../services/phoneEstimateValidation');
 const {
-  getBrandBySlug,
-  getBrands,
-  getModelsByBrand,
-} = require('../repositories/phoneCatalogRepository');
-const {
-  CONDITIONS,
-  estimatePhoneResale,
-  validatePhoneEstimateInput,
-} = require('../services/phoneEstimator');
+  getPhoneBrands,
+  getPhoneModels,
+  postPhoneEstimate,
+} = require('../services/phoneApiService');
 
 const router = express.Router();
 
-router.get('/brands', (_req, res) => {
-  return res.status(200).json({
-    data: getBrands(),
-  });
-});
-
-router.get('/brands/:brandSlug/models', (req, res) => {
-  const models = getModelsByBrand(req.params.brandSlug);
-
-  if (!models) {
-    return res.status(404).json({
-      error: 'Brand not found.',
+router.get('/brands', async (_req, res, next) => {
+  try {
+    return res.status(200).json({
+      data: await getPhoneBrands(),
     });
+  } catch (error) {
+    return next(error);
   }
-
-  return res.status(200).json({
-    brand: getBrandBySlug(req.params.brandSlug)?.name ?? req.params.brandSlug,
-    data: models,
-  });
 });
 
-router.post('/estimate', (req, res) => {
+router.get('/brands/:brandSlug/models', async (req, res, next) => {
+  try {
+    return res.status(200).json({
+      data: await getPhoneModels(req.params.brandSlug),
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post('/estimate', async (req, res, next) => {
   const payload = {
     brandSlug: req.body.brandSlug,
     brandName: req.body.brandName,
@@ -64,10 +59,14 @@ router.post('/estimate', (req, res) => {
     });
   }
 
-  return res.status(200).json({
-    message: 'Phone estimate calculated successfully.',
-    data: estimatePhoneResale(payload),
-  });
+  try {
+    return res.status(200).json({
+      message: 'Phone estimate calculated successfully.',
+      data: await postPhoneEstimate(payload),
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 module.exports = router;
