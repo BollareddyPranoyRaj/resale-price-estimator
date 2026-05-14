@@ -483,7 +483,7 @@ export default function EstimateScreen() {
               style={[styles.button, isSubmitting && styles.buttonDisabled]}
               onPress={handleEstimate}
               disabled={isSubmitting}>
-              <Text style={styles.buttonText}>{isSubmitting ? 'Calculating...' : '5. View Result'}</Text>
+              <Text style={styles.buttonText}>{isSubmitting ? 'Calculating...' : 'View Result'}</Text>
             </Pressable>
           </View>
         </ScrollView>
