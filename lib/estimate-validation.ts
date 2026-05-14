@@ -35,9 +35,7 @@ export function getValidationMessage(input: EstimateRequest) {
     return 'Please choose a physical condition.';
   }
 
-  if (!input.conditionData.physical || !physicalOptions.includes(input.conditionData.physical)) {
-    return 'Please choose a physical condition.';
-  }
+
 
   if (!input.conditionData.screen || !screenOptions.includes(input.conditionData.screen)) {
     return 'Please choose a screen condition.';

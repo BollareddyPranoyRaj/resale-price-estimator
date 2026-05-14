@@ -1,6 +1,7 @@
- import { router } from 'expo-router';
+import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -22,6 +23,7 @@ import {
   type PhoneBrand,
   type PhoneModel,
 } from '@/lib/api';
+import { store } from '@/lib/store';
 import {
   batteryOptions,
   getValidationMessage,
@@ -87,7 +89,6 @@ export default function EstimateScreen() {
     ageInMonths: Number(conditionData.age),
     condition: conditionData.physical,
     conditionData: {
-      physical: conditionData.physical,
       screen: conditionData.screen,
       battery: conditionData.battery,
       age: Number(conditionData.age),
@@ -228,12 +229,8 @@ export default function EstimateScreen() {
       setIsSubmitting(true);
       const result = await postEstimate(estimateInput);
 
-      router.push({
-        pathname: '/result',
-        params: {
-          result: JSON.stringify(result),
-        },
-      });
+      store.setEstimateResult(result);
+      router.push('/result');
     } catch (error) {
       setApiError(error instanceof Error ? error.message : 'Failed to reach the backend API.');
     } finally {

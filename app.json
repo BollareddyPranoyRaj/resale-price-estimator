@@ -2,7 +2,7 @@
   "expo": {
     "name": "Resale Price Estimator",
     "slug": "resale-app",
-    "description": "Mobile resale price estimator for phones, laptops, tablets, and accessories.",
+    "description": "Mobile resale price estimator for phones.",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

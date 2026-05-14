@@ -1,10 +1,9 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { EstimateResult } from '@/lib/api';
+import { store } from '@/lib/store';
 
 export default function ResultScreen() {
-  const params = useLocalSearchParams<{ result?: string }>();
-  const parsedResult = safeParseResult(params.result);
+  const parsedResult = store.estimateResult;
 
   if (!parsedResult) {
     return (
@@ -94,17 +93,7 @@ function capitalize(value: string) {
   return value[0].toUpperCase() + value.slice(1);
 }
 
-function safeParseResult(value?: string): EstimateResult | null {
-  if (!value) {
-    return null;
-  }
 
-  try {
-    return JSON.parse(value) as EstimateResult;
-  } catch {
-    return null;
-  }
-}
 
 const styles = StyleSheet.create({
   safeArea: {

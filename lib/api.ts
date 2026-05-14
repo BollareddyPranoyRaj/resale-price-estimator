@@ -10,7 +10,6 @@ export type UsageIntensity = 'light' | 'moderate' | 'heavy';
 export type RepairHistory = 'no' | 'minor' | 'major';
 
 export type EstimateConditionData = {
-  physical: EstimateCondition | null;
   screen: ScreenCondition | null;
   battery: BatteryCondition | null;
   age: number;

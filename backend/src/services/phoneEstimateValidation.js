@@ -25,9 +25,7 @@ function validatePhoneEstimateInput(input) {
     return 'originalPrice must be greater than 0.';
   }
 
-  if (!CONDITIONS.includes(input.conditionData?.physical)) {
-    return 'physical condition must be one of: excellent, good, fair, poor.';
-  }
+
 
   if (!SCREEN_CONDITIONS.includes(input.conditionData?.screen)) {
     return 'screen condition must be one of: no scratches, minor, cracked.';
