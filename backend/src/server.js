@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const phonesRouter = require('./routes/phones');
+const { GeminiApiError } = require('./lib/geminiApi');
 const { UpstreamApiError } = require('./lib/upstreamApi');
 
 const app = express();
@@ -32,6 +33,12 @@ app.use((err, _req, res, _next) => {
   console.error(err);
 
   if (err instanceof UpstreamApiError) {
+    return res.status(err.status).json({
+      error: err.message,
+    });
+  }
+
+  if (err instanceof GeminiApiError) {
     return res.status(err.status).json({
       error: err.message,
     });
