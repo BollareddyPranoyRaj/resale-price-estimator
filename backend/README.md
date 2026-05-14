@@ -12,8 +12,17 @@ npm run dev
 
 The API runs at `http://localhost:5000` by default.
 
-Set `UPSTREAM_API_BASE_URL` to the production catalog and estimation API before starting the
-server. The backend does not include embedded business data or local estimation logic.
+Set one of these backend-only environment variables before starting the server:
+
+- `UPSTREAM_API_BASE_URL`: forwards catalog and estimate requests to your production API.
+- `GEMINI_API_KEY`: uses Gemini to generate catalog suggestions and AI resale estimates when no
+  upstream API is configured.
+
+Optional:
+
+- `GEMINI_MODEL`: defaults to `gemini-2.5-flash`.
+
+Do not put `GEMINI_API_KEY` in the Expo frontend or any `EXPO_PUBLIC_*` variable.
 
 ## Endpoints
 

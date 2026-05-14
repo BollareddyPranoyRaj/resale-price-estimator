@@ -58,9 +58,16 @@ If no env var is provided, the app resolves a local URL from Expo host info and 
 - `GET /api/phones/brands/:brandSlug/models`
 - `POST /api/phones/estimate`
 
-The backend no longer ships embedded business catalogs or local estimation formulas. Set
-`UPSTREAM_API_BASE_URL` in the backend environment so brand, model, and estimate requests are
-forwarded to your production data service.
+The backend no longer ships embedded business catalogs or local estimation formulas. It can use
+either:
+
+- `UPSTREAM_API_BASE_URL` to forward brand, model, and estimate requests to your production data
+  service.
+- `GEMINI_API_KEY` to generate brand/model suggestions and AI resale estimates directly from
+  Gemini when no upstream API is configured.
+
+Keep `GEMINI_API_KEY` only in the backend environment. Do not expose it through an
+`EXPO_PUBLIC_*` variable.
 
 ## Checks
 
