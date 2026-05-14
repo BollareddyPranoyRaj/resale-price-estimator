@@ -106,6 +106,7 @@ async function getGeminiPhoneModels(brandSlug) {
   const response = await requestGeminiJson(`Return JSON only.
 Create a phone resale model catalog for brand slug "${brandSlug}" in India.
 Return an object with a "models" array of 15 recent or commonly resold models.
+Make sure to include the absolute newest models released up to 2025 and 2026.
 Each model must have: slug, name, launchPrice, releaseYear, segment.
 launchPrice must be an approximate Indian launch price in INR.`);
 
