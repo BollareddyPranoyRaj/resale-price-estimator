@@ -5,13 +5,22 @@ const {
   postGeminiPhoneEstimate,
 } = require('./geminiPhoneService');
 
+let brandsCache = null;
+const modelsCache = new Map();
+
 function hasUpstreamApi() {
   return Boolean(process.env.UPSTREAM_API_BASE_URL?.trim());
 }
 
 async function getPhoneBrands() {
+  if (brandsCache) {
+    return brandsCache;
+  }
+
   if (!hasUpstreamApi()) {
-    return getGeminiPhoneBrands();
+    const brands = await getGeminiPhoneBrands();
+    brandsCache = brands;
+    return brands;
   }
 
   const response = await requestUpstream('/phones/brands');
@@ -19,8 +28,14 @@ async function getPhoneBrands() {
 }
 
 async function getPhoneModels(brandSlug) {
+  if (modelsCache.has(brandSlug)) {
+    return modelsCache.get(brandSlug);
+  }
+
   if (!hasUpstreamApi()) {
-    return getGeminiPhoneModels(brandSlug);
+    const models = await getGeminiPhoneModels(brandSlug);
+    modelsCache.set(brandSlug, models);
+    return models;
   }
 
   const response = await requestUpstream(`/phones/brands/${encodeURIComponent(brandSlug)}/models`);
