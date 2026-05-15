@@ -38,7 +38,10 @@ export default function EstimateScreen() {
   const [brandQuery, setBrandQuery] = useState('');
   const [modelQuery, setModelQuery] = useState('');
   const [phoneBrands, setPhoneBrands] = useState<PhoneBrand[]>([]);
+  const [showAllBrands, setShowAllBrands] = useState(false);
   const [phoneModels, setPhoneModels] = useState<PhoneModel[]>([]);
+  const [showAllModels, setShowAllModels] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<PhoneBrand | null>(null);
   const [selectedPhoneModel, setSelectedPhoneModel] = useState<PhoneModel | null>(null);
   const [originalPrice, setOriginalPrice] = useState('');
@@ -134,6 +137,8 @@ export default function EstimateScreen() {
     setIsLoadingModels(true);
     setModelLoadError('');
     setPhoneModels([]);
+    setShowAllModels(false);
+    setHasSearched(true);
     setSelectedPhoneModel(null);
 
     try {
@@ -153,6 +158,7 @@ export default function EstimateScreen() {
     setBrandQuery('');
     setSelectedPhoneModel(null);
     setModelQuery('');
+    setHasSearched(false);
     setOriginalPrice('');
     setApiError('');
   };
@@ -171,6 +177,7 @@ export default function EstimateScreen() {
   const handleModelSelect = (model: PhoneModel) => {
     setSelectedPhoneModel(model);
     setModelQuery(model.name);
+    setPhoneModels([]); // Clear the dropdown list
     setApiError('');
 
     if (model.launchPrice > 0) {
@@ -247,18 +254,36 @@ export default function EstimateScreen() {
             ) : null}
 
             {!selectedBrand && !isLoadingBrands ? (
-              <FlatList
-                data={filteredBrands}
-                keyExtractor={(item) => item.slug}
-                scrollEnabled={false}
-                contentContainerStyle={styles.listContent}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.listItem} onPress={() => handleBrandSelect(item)}>
-                    <Text style={styles.listTitle}>{item.name}</Text>
-                    <Text style={styles.listSubtitle}>{item.modelCount} API models</Text>
+              <View>
+                <FlatList
+                  data={showAllBrands ? filteredBrands : filteredBrands.slice(0, 4)}
+                  keyExtractor={(item) => item.slug}
+                  scrollEnabled={false}
+                  contentContainerStyle={styles.listContent}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity style={styles.listItem} onPress={() => handleBrandSelect(item)}>
+                      <Text style={styles.listTitle}>{item.name}</Text>
+                      <Text style={styles.listSubtitle}>{item.modelCount} API models</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+                {!showAllBrands && filteredBrands.length > 4 && (
+                  <TouchableOpacity 
+                    style={{ alignItems: 'center', marginTop: 12, paddingVertical: 8, backgroundColor: '#1e293b', borderRadius: 8 }}
+                    onPress={() => setShowAllBrands(true)}
+                  >
+                    <Text style={{ color: '#3b82f6', fontWeight: '600' }}>Show {filteredBrands.length - 4} more brands</Text>
                   </TouchableOpacity>
                 )}
-              />
+                {showAllBrands && filteredBrands.length > 4 && (
+                  <TouchableOpacity 
+                    style={{ alignItems: 'center', marginTop: 12, paddingVertical: 8, backgroundColor: '#1e293b', borderRadius: 8 }}
+                    onPress={() => setShowAllBrands(false)}
+                  >
+                    <Text style={{ color: '#64748b', fontWeight: '600' }}>Show less</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             ) : null}
 
             {brandLoadError ? <Text style={styles.errorText}>{brandLoadError}</Text> : null}
@@ -283,11 +308,7 @@ export default function EstimateScreen() {
               </Pressable>
             </View>
 
-            {selectedPhoneModel ? (
-              <Text style={styles.helperText}>
-                Selected model: {selectedPhoneModel.name}. Launch price was pulled from the API.
-              </Text>
-            ) : null}
+
 
             {selectedBrand && isLoadingModels ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
@@ -297,31 +318,51 @@ export default function EstimateScreen() {
             ) : null}
 
             {selectedBrand && !isLoadingModels && phoneModels.length > 0 ? (
-              <FlatList
-                data={phoneModels}
-                keyExtractor={(item) => item.slug}
-                scrollEnabled={false}
-                contentContainerStyle={styles.listContent}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.listItem} onPress={() => handleModelSelect(item)}>
-                    <Text style={styles.listTitle}>{item.name}</Text>
-                    <Text style={styles.listSubtitle}>
-                      Launch price Rs. {item.launchPrice} · {item.releaseYear}
-                    </Text>
+              <View>
+                <FlatList
+                  data={showAllModels ? phoneModels : phoneModels.slice(0, 3)}
+                  keyExtractor={(item) => item.slug}
+                  scrollEnabled={false}
+                  contentContainerStyle={styles.listContent}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity style={styles.listItem} onPress={() => handleModelSelect(item)}>
+                      <Text style={styles.listTitle}>{item.name}</Text>
+                      <Text style={styles.listSubtitle}>
+                        Launch price Rs. {item.launchPrice} · {item.releaseYear}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+                {!showAllModels && phoneModels.length > 3 && (
+                  <TouchableOpacity 
+                    style={{ alignItems: 'center', marginTop: 12, paddingVertical: 8, backgroundColor: '#1e293b', borderRadius: 8 }}
+                    onPress={() => setShowAllModels(true)}
+                  >
+                    <Text style={{ color: '#3b82f6', fontWeight: '600' }}>Show {phoneModels.length - 3} more models</Text>
                   </TouchableOpacity>
                 )}
-              />
+                {showAllModels && phoneModels.length > 3 && (
+                  <TouchableOpacity 
+                    style={{ alignItems: 'center', marginTop: 12, paddingVertical: 8, backgroundColor: '#1e293b', borderRadius: 8 }}
+                    onPress={() => setShowAllModels(false)}
+                  >
+                    <Text style={{ color: '#64748b', fontWeight: '600' }}>Show less</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             ) : null}
 
-            {selectedBrand &&
-            !isLoadingModels &&
-            !modelLoadError &&
-            phoneModels.length === 0 ? (
+            {selectedBrand && !isLoadingModels && !modelLoadError && !selectedPhoneModel && phoneModels.length === 0 && modelQuery.trim().length > 0 && !hasSearched ? (
+              <Text style={[styles.helperText, { marginTop: 8 }]}>
+                Tap the Search button to find models for "{modelQuery}".
+              </Text>
+            ) : null}
+
+            {selectedBrand && !isLoadingModels && !modelLoadError && !selectedPhoneModel && phoneModels.length === 0 && hasSearched && modelQuery.trim().length > 0 ? (
               <View style={styles.noticeCard}>
-                <Text style={styles.noticeTitle}>Models unavailable</Text>
+                <Text style={styles.noticeTitle}>No results found</Text>
                 <Text style={styles.noticeText}>
-                  The API did not return models for {selectedBrand.name}. TODO: complete the model
-                  API before estimates can be created for this brand.
+                  No models found for "{modelQuery}". Try a different search term.
                 </Text>
               </View>
             ) : null}
