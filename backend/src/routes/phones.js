@@ -22,7 +22,7 @@ router.get('/brands', async (_req, res, next) => {
 router.get('/brands/:brandSlug/models', async (req, res, next) => {
   try {
     return res.status(200).json({
-      data: await getPhoneModels(req.params.brandSlug),
+      data: await getPhoneModels(req.params.brandSlug, req.query.q),
     });
   } catch (error) {
     return next(error);

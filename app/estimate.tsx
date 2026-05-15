@@ -70,15 +70,7 @@ export default function EstimateScreen() {
     return phoneBrands.filter((brand) => brand.name.toLowerCase().includes(normalizedQuery));
   }, [brandQuery, phoneBrands]);
 
-  const filteredModels = useMemo(() => {
-    const normalizedQuery = modelQuery.trim().toLowerCase();
 
-    if (!normalizedQuery) {
-      return phoneModels;
-    }
-
-    return phoneModels.filter((model) => model.name.toLowerCase().includes(normalizedQuery));
-  }, [modelQuery, phoneModels]);
 
   const estimateInput: EstimateRequest = {
     brandName: selectedBrand?.name,
@@ -134,48 +126,27 @@ export default function EstimateScreen() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!selectedBrand?.slug) {
-      setPhoneModels([]);
-      setSelectedPhoneModel(null);
-      setModelQuery('');
-      setModelLoadError('');
+  const handleSearchModels = async () => {
+    if (!selectedBrand?.slug || !modelQuery.trim()) {
       return;
     }
 
-    let cancelled = false;
+    setIsLoadingModels(true);
+    setModelLoadError('');
+    setPhoneModels([]);
+    setSelectedPhoneModel(null);
 
-    async function loadPhoneModels() {
-      setIsLoadingModels(true);
-      setModelLoadError('');
-      setPhoneModels([]);
-      setSelectedPhoneModel(null);
-      setModelQuery('');
-
-      try {
-        const models = await getPhoneModels(selectedBrand.slug);
-        if (!cancelled) {
-          setPhoneModels(models);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setModelLoadError(
-            error instanceof Error ? error.message : 'Failed to load phone models from the API.'
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingModels(false);
-        }
-      }
+    try {
+      const models = await getPhoneModels(selectedBrand.slug, modelQuery);
+      setPhoneModels(models);
+    } catch (error) {
+      setModelLoadError(
+        error instanceof Error ? error.message : 'Failed to load phone models from the API.'
+      );
+    } finally {
+      setIsLoadingModels(false);
     }
-
-    void loadPhoneModels();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedBrand?.slug]);
+  };
 
   const handleBrandSelect = (brand: PhoneBrand) => {
     setSelectedBrand(brand);
@@ -293,14 +264,24 @@ export default function EstimateScreen() {
             {brandLoadError ? <Text style={styles.errorText}>{brandLoadError}</Text> : null}
 
             <Text style={styles.sectionTitle}>2. Choose Model</Text>
-            <TextInput
-              value={modelQuery}
-              onChangeText={handleModelChange}
-              placeholder={selectedBrand ? `Search ${selectedBrand.name} models` : 'Select a brand first'}
-              placeholderTextColor="#64748b"
-              style={styles.input}
-              editable={Boolean(selectedBrand)}
-            />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TextInput
+                value={modelQuery}
+                onChangeText={handleModelChange}
+                placeholder={selectedBrand ? `Enter model (e.g. S23 FE)` : 'Select a brand first'}
+                placeholderTextColor="#64748b"
+                style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                editable={Boolean(selectedBrand)}
+                onSubmitEditing={handleSearchModels}
+              />
+              <Pressable 
+                style={[styles.pill, { backgroundColor: '#3b82f6', borderColor: '#3b82f6', justifyContent: 'center' }]} 
+                onPress={handleSearchModels}
+                disabled={!selectedBrand || isLoadingModels}
+              >
+                <Text style={[styles.pillText, { color: '#ffffff', fontWeight: '600' }]}>Search</Text>
+              </Pressable>
+            </View>
 
             {selectedPhoneModel ? (
               <Text style={styles.helperText}>
@@ -309,12 +290,15 @@ export default function EstimateScreen() {
             ) : null}
 
             {selectedBrand && isLoadingModels ? (
-              <Text style={styles.helperText}>Loading models for {selectedBrand.name}...</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                <ActivityIndicator size="small" color="#3b82f6" />
+                <Text style={styles.helperText}>Searching models for "{modelQuery}"...</Text>
+              </View>
             ) : null}
 
-            {selectedBrand && !isLoadingModels && filteredModels.length > 0 ? (
+            {selectedBrand && !isLoadingModels && phoneModels.length > 0 ? (
               <FlatList
-                data={filteredModels}
+                data={phoneModels}
                 keyExtractor={(item) => item.slug}
                 scrollEnabled={false}
                 contentContainerStyle={styles.listContent}

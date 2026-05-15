@@ -102,11 +102,15 @@ Use URL-safe lowercase slugs.`);
   return brands.length ? brands : [{ slug: 'apple', name: 'Apple', modelCount: 12 }];
 }
 
-async function getGeminiPhoneModels(brandSlug) {
+async function getGeminiPhoneModels(brandSlug, searchQuery) {
+  const searchContext = searchQuery 
+    ? `The user is specifically searching for a model similar to "${searchQuery}". Ensure your list includes the closest matching models to this search query.` 
+    : 'Make sure to include the absolute newest models released up to 2025 and 2026, as well as popular FE or Pro variants.';
+
   const response = await requestGeminiJson(`Return JSON only.
 Create a phone resale model catalog for brand slug "${brandSlug}" in India.
-Return an object with a "models" array of 15 recent or commonly resold models.
-Make sure to include the absolute newest models released up to 2025 and 2026.
+Return an object with a "models" array of 5 to 10 real phone models.
+${searchContext}
 Each model must have: slug, name, launchPrice, releaseYear, segment.
 launchPrice must be an approximate Indian launch price in INR.`);
 

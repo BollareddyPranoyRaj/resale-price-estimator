@@ -27,18 +27,21 @@ async function getPhoneBrands() {
   return response.data;
 }
 
-async function getPhoneModels(brandSlug) {
-  if (modelsCache.has(brandSlug)) {
-    return modelsCache.get(brandSlug);
+async function getPhoneModels(brandSlug, searchQuery = '') {
+  const cacheKey = `${brandSlug}_${searchQuery}`.toLowerCase();
+
+  if (modelsCache.has(cacheKey)) {
+    return modelsCache.get(cacheKey);
   }
 
   if (!hasUpstreamApi()) {
-    const models = await getGeminiPhoneModels(brandSlug);
-    modelsCache.set(brandSlug, models);
+    const models = await getGeminiPhoneModels(brandSlug, searchQuery);
+    modelsCache.set(cacheKey, models);
     return models;
   }
 
-  const response = await requestUpstream(`/phones/brands/${encodeURIComponent(brandSlug)}/models`);
+  const queryParam = searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : '';
+  const response = await requestUpstream(`/phones/brands/${encodeURIComponent(brandSlug)}/models${queryParam}`);
   return response.data;
 }
 

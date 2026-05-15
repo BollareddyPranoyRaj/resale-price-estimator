@@ -110,8 +110,9 @@ export async function getPhoneBrands() {
   return response.data;
 }
 
-export async function getPhoneModels(brandSlug: string) {
-  const response = await requestJson<PhoneModel[]>(`/phones/brands/${brandSlug}/models`);
+export async function getPhoneModels(brandSlug: string, searchQuery: string = '') {
+  const queryParam = searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : '';
+  const response = await requestJson<PhoneModel[]>(`/phones/brands/${brandSlug}/models${queryParam}`);
   return response.data;
 }
 
