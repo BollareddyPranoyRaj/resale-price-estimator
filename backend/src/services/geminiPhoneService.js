@@ -104,7 +104,13 @@ Use URL-safe lowercase slugs.`);
 
 async function getGeminiPhoneModels(brandSlug, searchQuery) {
   const searchContext = searchQuery 
-    ? `The user searched for EXACTLY: "${searchQuery}". You MUST include this exact model in your results, even if it is a brand new 2025/2026 release (like iPhone 16 or S24 FE). Furthermore, generate 4-5 different storage variants of this exact model (e.g. "${searchQuery} 256GB", "${searchQuery} 512GB") as separate items in the array.` 
+    ? `The user typed: "${searchQuery}". 
+IMPORTANT: The user may have made typos or used shorthand. You MUST interpret their intent and correct it to the real phone model name before generating results. For example:
+- "samsung 26" means "Galaxy S26"
+- "ult" means "Ultra"  
+- "s25 ult" means "Galaxy S25 Ultra"
+- "iphone 16 pro mx" means "iPhone 16 Pro Max"
+First determine the correct real model name based on the brand "${brandSlug}", then generate 4-5 storage variants (e.g. 128GB, 256GB, 512GB) of that CORRECTED model name as separate items. The model names in your response must use the proper official product names, not whatever the user typed.` 
     : 'Make sure to include the absolute newest models released up to 2025 and 2026, as well as popular FE or Pro variants.';
 
   const response = await requestGeminiJson(`Return JSON only.
